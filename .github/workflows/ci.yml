@@ -30,23 +30,23 @@ jobs:
       - name: Test
         run: dotnet test FeiertageApi.Tests/FeiertageApi.Tests.csproj -c Debug --no-build --no-restore --collect:"XPlat Code Coverage" --results-directory ./TestResults
 
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
         with:
+          directory: ./TestResults
           token: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Generate coverage report
-        run: |
-          dotnet tool install --global dotnet-reportgenerator-globaltool
-          reportgenerator -reports:TestResults/*/coverage.cobertura.xml -targetdir:TestResults/CoverageReport -reporttypes:"Html;MarkdownSummaryGithub"
-
-      - name: Add coverage PR comment
-        uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
-        with:
-          recreate: true
-          path: TestResults/CoverageReport/SummaryGithub.md
+#      - name: Generate coverage report
+#        run: |
+#          dotnet tool install --global dotnet-reportgenerator-globaltool
+#          reportgenerator -reports:TestResults/*/coverage.cobertura.xml -targetdir:TestResults/CoverageReport -reporttypes:"Html;MarkdownSummaryGithub"
+#
+#      - name: Add coverage PR comment
+#        uses: marocchino/sticky-pull-request-comment@v2
+#        if: github.event_name == 'pull_request'
+#        with:
+#          recreate: true
+#          path: TestResults/CoverageReport/SummaryGithub.md
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v6
