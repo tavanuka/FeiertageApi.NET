@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace FeiertageApi.Clients;
 
+/// <summary>
+/// Interface for accessing the Feiertage API to retrieve German public holidays.
+/// Implementations may support both DI container usage and standalone usage with IDisposable/IAsyncDisposable patterns.
+/// </summary>
 public interface IFeiertageApiClient
 {
     /// <summary>

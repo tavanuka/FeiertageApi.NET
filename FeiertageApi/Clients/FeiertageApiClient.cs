@@ -13,15 +13,50 @@ using System.Threading.Tasks;
 
 namespace FeiertageApi.Clients;
 
-internal sealed class FeiertageApiClient : IFeiertageApiClient
+/// <summary>
+/// Client for accessing the Feiertage API to retrieve German public holidays.
+/// Implements both synchronous (IDisposable) and asynchronous (IAsyncDisposable) disposal patterns.
+/// </summary>
+public sealed class FeiertageApiClient : IFeiertageApiClient, IDisposable, IAsyncDisposable
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<FeiertageApiClient> _logger;
+    private readonly bool _shouldDisposeHttpClient;
+    private bool _disposed;
 
+    /// <summary>
+    /// Initializes a new instance of FeiertageApiClient with an existing HttpClient.
+    /// Use this constructor when working with dependency injection or when you want to manage HttpClient lifecycle externally.
+    /// </summary>
+    /// <param name="httpClient">The HttpClient to use for API requests. The caller is responsible for disposal.</param>
+    /// <param name="logger">Optional logger for diagnostic information.</param>
     public FeiertageApiClient(HttpClient httpClient, ILogger<FeiertageApiClient>? logger = null)
     {
-        _httpClient = httpClient;
+        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? NullLogger<FeiertageApiClient>.Instance;
+        _shouldDisposeHttpClient = false;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of FeiertageApiClient by creating a new HttpClient.
+    /// Use this constructor for standalone usage without dependency injection.
+    /// The HttpClient will be disposed when this instance is disposed.
+    /// </summary>
+    /// <param name="logger">Optional logger for diagnostic information.</param>
+    /// <example>
+    /// <code>
+    /// using var client = new FeiertageApiClient();
+    /// var holidays = await client.GetPublicHolidays(2024, "by");
+    /// </code>
+    /// </example>
+    public FeiertageApiClient(ILogger<FeiertageApiClient>? logger = null)
+    {
+        _httpClient = new HttpClient
+        {
+            BaseAddress = new Uri(IFeiertageApiClient.FeiertageApiBaseUrl)
+        };
+        _logger = logger ?? NullLogger<FeiertageApiClient>.Instance;
+        _shouldDisposeHttpClient = true;
     }
 
     public async Task<HolidayResponse> GetPublicHolidays(bool allStates = false, bool? catholic = null, bool? augsburg = null, CancellationToken cancellationToken = default)
@@ -63,6 +98,8 @@ internal sealed class FeiertageApiClient : IFeiertageApiClient
         HolidayRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
+
         _logger.LogDebug("Streaming holidays from Feiertage API");
 
         var response = await GetPublicHolidays(request, cancellationToken);
@@ -137,6 +174,8 @@ internal sealed class FeiertageApiClient : IFeiertageApiClient
     /// </exception>
     public async Task<HolidayResponse> GetPublicHolidays(HolidayRequest request, CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
+
         var queryDict = new Dictionary<string, string?>();
         if (request.AllStates)
             queryDict.Add("all_states", "true");
@@ -240,5 +279,57 @@ internal sealed class FeiertageApiClient : IFeiertageApiClient
             _logger.LogDebug("Successfully retrieved {HolidayCount} holidays from Feiertage API", holidayResponse.Holidays.Count);
 
         return holidayResponse;
+    }
+
+    /// <summary>
+    /// Throws an ObjectDisposedException if the client has been disposed.
+    /// </summary>
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(FeiertageApiClient));
+        }
+    }
+
+    /// <summary>
+    /// Disposes the FeiertageApiClient and releases any managed resources.
+    /// If the HttpClient was created internally, it will be disposed. Otherwise, disposal is left to the caller.
+    /// </summary>
+    public void Dispose()
+    {
+        if (_disposed)
+            return;
+
+        if (_shouldDisposeHttpClient)
+        {
+            _httpClient?.Dispose();
+        }
+
+        _disposed = true;
+
+        _logger.LogDebug("FeiertageApiClient disposed");
+    }
+
+    /// <summary>
+    /// Asynchronously disposes the FeiertageApiClient and releases any managed resources.
+    /// If the HttpClient was created internally, it will be disposed. Otherwise, disposal is left to the caller.
+    /// </summary>
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+            return;
+
+        if (_shouldDisposeHttpClient)
+        {
+            _httpClient?.Dispose();
+        }
+
+        _disposed = true;
+
+        if (_logger.IsEnabled(LogLevel.Debug))
+            _logger.LogDebug("FeiertageApiClient disposed asynchronously");
+
+        await ValueTask.CompletedTask;
     }
 }
