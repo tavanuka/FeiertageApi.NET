@@ -30,6 +30,12 @@ jobs:
       - name: Test
         run: dotnet test FeiertageApi.Tests/FeiertageApi.Tests.csproj -c Debug --no-build --no-restore --collect:"XPlat Code Coverage" --results-directory ./TestResults
 
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
       - name: Generate coverage report
         run: |
           dotnet tool install --global dotnet-reportgenerator-globaltool
