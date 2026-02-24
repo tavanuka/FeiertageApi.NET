@@ -221,7 +221,7 @@ builder.Services.AddLogging(logging =>
 
 ## Requirements
 
-- .NET 10.0 or later
+- .NET 8.0, 9.0, 10.0 or later
 - Internet connection to access the Feiertage API
 
 ## API Reference
