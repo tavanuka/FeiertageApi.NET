@@ -369,13 +369,8 @@ public sealed class FeiertageApiClient : IFeiertageApiClient, IDisposable, IAsyn
     /// <summary>
     /// Throws an ObjectDisposedException if the client has been disposed.
     /// </summary>
-    private void ThrowIfDisposed()
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(FeiertageApiClient));
-        }
-    }
+    private void ThrowIfDisposed() 
+        => ObjectDisposedException.ThrowIf(_disposed, this);
 
     /// <summary>
     /// Disposes the FeiertageApiClient and releases any managed resources.
@@ -387,9 +382,7 @@ public sealed class FeiertageApiClient : IFeiertageApiClient, IDisposable, IAsyn
             return;
 
         if (_shouldDisposeHttpClient)
-        {
-            _httpClient?.Dispose();
-        }
+            _httpClient.Dispose();
 
         _disposed = true;
 
@@ -406,9 +399,7 @@ public sealed class FeiertageApiClient : IFeiertageApiClient, IDisposable, IAsyn
             return;
 
         if (_shouldDisposeHttpClient)
-        {
-            _httpClient?.Dispose();
-        }
+            _httpClient.Dispose();
 
         _disposed = true;
 
