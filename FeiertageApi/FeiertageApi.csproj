@@ -36,7 +36,7 @@
       <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.3" />
       <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.3.0" />
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
-      <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+      <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.103" PrivateAssets="All" />
     </ItemGroup>
 
 </Project>
