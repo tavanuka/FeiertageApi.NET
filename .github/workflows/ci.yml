@@ -36,21 +36,10 @@ jobs:
           directory: ./TestResults
           token: ${{ secrets.CODECOV_TOKEN }}
 
-#      - name: Generate coverage report
-#        run: |
-#          dotnet tool install --global dotnet-reportgenerator-globaltool
-#          reportgenerator -reports:TestResults/*/coverage.cobertura.xml -targetdir:TestResults/CoverageReport -reporttypes:"Html;MarkdownSummaryGithub"
-#
-#      - name: Add coverage PR comment
-#        uses: marocchino/sticky-pull-request-comment@v2
-#        if: github.event_name == 'pull_request'
-#        with:
-#          recreate: true
-#          path: TestResults/CoverageReport/SummaryGithub.md
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v6
-        if: always()
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v5
         with:
-          name: coverage-report
-          path: TestResults/CoverageReport
+          directory: ./TestResults
+          token: ${{ secrets.CODECOV_TOKEN }}
+          report_type: test_results
