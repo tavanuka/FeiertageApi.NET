@@ -8,12 +8,14 @@ using System.Text.Encodings.Web;
 using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FeiertageApi.Utilities;
 
 /// <summary>
 /// Provides methods for parsing and manipulating query strings.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class QueryHelpers
 {
     /// <summary>
