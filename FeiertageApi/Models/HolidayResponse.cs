@@ -1,4 +1,4 @@
-﻿using FeiertageApi.Converters;
+using FeiertageApi.Converters;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
@@ -22,7 +22,7 @@ public sealed record HolidayResponse(string Status, IReadOnlyList<Holiday> Holid
 /// <param name="Date">The date of the holiday.</param>
 /// <param name="Name">The name of the holiday.</param>
 /// <param name="AllStates">Indicates whether the holiday is applicable in all states.</param>
-/// <param name="States">A dictionary indicating the applicability of the holiday in specific states.</param>
+/// <param name="States">A dictionary indicating the applicability of the holiday in specific German states.</param>
 /// <param name="Comment">Additional commentary or notes for the holiday, if any.</param>
 /// <param name="Augsburg">Indicates whether the holiday is specific to Augsburg.</param>
 /// <param name="Catholic">Indicates whether the holiday has a Catholic tradition or significance.</param>
@@ -30,7 +30,7 @@ public sealed record Holiday(
     DateOnly Date,
     string Name,
     bool AllStates,
-    IReadOnlyDictionary<string, bool> States,
+    IReadOnlyDictionary<GermanState, bool> States,
     string Comment,
     bool? Augsburg,
     bool? Catholic

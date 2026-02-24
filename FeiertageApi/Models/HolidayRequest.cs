@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace FeiertageApi.Models;
 
@@ -9,7 +9,7 @@ namespace FeiertageApi.Models;
 /// A collection of years for which holiday information is requested.
 /// </param>
 /// <param name="States">
-/// A collection of states for which holiday information is requested.
+/// A collection of German states for which holiday information is requested.
 /// </param>
 /// <param name="AllStates">
 /// A boolean flag indicating whether to include only state-wide holidays. Defaults to false.
@@ -22,7 +22,7 @@ namespace FeiertageApi.Models;
 /// </param>
 public record HolidayRequest(
     IEnumerable<int> Years,
-    IEnumerable<string> States,
+    IEnumerable<GermanState> States,
     bool AllStates = false,
     bool? Catholic = null,
     bool? Augsburg = null);

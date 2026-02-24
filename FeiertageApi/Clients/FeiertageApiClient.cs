@@ -1,4 +1,5 @@
 ﻿using FeiertageApi.Exceptions;
+using FeiertageApi.Extensions;
 using FeiertageApi.Models;
 using FeiertageApi.Utilities;
 using Microsoft.Extensions.Logging;
@@ -65,13 +66,78 @@ public sealed class FeiertageApiClient : IFeiertageApiClient, IDisposable, IAsyn
     public async Task<HolidayResponse> GetPublicHolidays(int year, bool allStates = false, bool? catholic = null, bool? augsburg = null, CancellationToken cancellationToken = default)
         => await GetPublicHolidays(new HolidayRequest([year], [], allStates, catholic, augsburg), cancellationToken);
 
-    public async Task<HolidayResponse> GetPublicHolidays(int year, string state, bool allStates = false, bool? catholic = null, bool? augsburg = null, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Gets public holidays for a specific year and German state using strongly-typed enum.
+    /// </summary>
+    /// <param name="year">The year for which holidays are requested.</param>
+    /// <param name="state">The German state enum value.</param>
+    /// <param name="allStates">Include only holidays valid in all states.</param>
+    /// <param name="catholic">Filter by Catholic holidays.</param>
+    /// <param name="augsburg">Filter by Augsburg-specific holidays.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A holiday response containing the requested holidays.</returns>
+    /// <example>
+    /// <code>
+    /// var holidays = await client.GetPublicHolidays(2024, GermanState.Bavaria);
+    /// </code>
+    /// </example>
+    public async Task<HolidayResponse> GetPublicHolidays(
+        int year,
+        GermanState state,
+        bool allStates = false,
+        bool? catholic = null,
+        bool? augsburg = null,
+        CancellationToken cancellationToken = default)
         => await GetPublicHolidays(new HolidayRequest([year], [state], allStates, catholic, augsburg), cancellationToken);
 
-    public async Task<HolidayResponse> GetPublicHolidays(int year, IEnumerable<string> states, bool allStates = false, bool? catholic = null, bool? augsburg = null, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Gets public holidays for a specific year and multiple German states using strongly-typed enums.
+    /// </summary>
+    /// <param name="year">The year for which holidays are requested.</param>
+    /// <param name="states">Collection of German state enum values.</param>
+    /// <param name="allStates">Include only holidays valid in all states.</param>
+    /// <param name="catholic">Filter by Catholic holidays.</param>
+    /// <param name="augsburg">Filter by Augsburg-specific holidays.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A holiday response containing the requested holidays.</returns>
+    /// <example>
+    /// <code>
+    /// var holidays = await client.GetPublicHolidays(2024, new[] { GermanState.Bavaria, GermanState.Berlin });
+    /// </code>
+    /// </example>
+    public async Task<HolidayResponse> GetPublicHolidays(
+        int year,
+        IEnumerable<GermanState> states,
+        bool allStates = false,
+        bool? catholic = null,
+        bool? augsburg = null,
+        CancellationToken cancellationToken = default)
         => await GetPublicHolidays(new HolidayRequest([year], states, allStates, catholic, augsburg), cancellationToken);
 
-    public async Task<HolidayResponse> GetPublicHolidays(IEnumerable<int> years, IEnumerable<string> states, bool allStates = false, bool? catholic = null, bool? augsburg = null, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Gets public holidays for multiple years and multiple German states using strongly-typed enums.
+    /// </summary>
+    /// <param name="years">Collection of years for which holidays are requested.</param>
+    /// <param name="states">Collection of German state enum values.</param>
+    /// <param name="allStates">Include only holidays valid in all states.</param>
+    /// <param name="catholic">Filter by Catholic holidays.</param>
+    /// <param name="augsburg">Filter by Augsburg-specific holidays.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A holiday response containing the requested holidays.</returns>
+    /// <example>
+    /// <code>
+    /// var holidays = await client.GetPublicHolidays(
+    ///     new[] { 2024, 2025 },
+    ///     new[] { GermanState.Bavaria, GermanState.Berlin });
+    /// </code>
+    /// </example>
+    public async Task<HolidayResponse> GetPublicHolidays(
+        IEnumerable<int> years,
+        IEnumerable<GermanState> states,
+        bool allStates = false,
+        bool? catholic = null,
+        bool? augsburg = null,
+        CancellationToken cancellationToken = default)
         => await GetPublicHolidays(new HolidayRequest(years, states, allStates, catholic, augsburg), cancellationToken);
 
     /// <summary>
@@ -114,19 +180,28 @@ public sealed class FeiertageApiClient : IFeiertageApiClient, IDisposable, IAsyn
             _logger.LogDebug("Finished streaming {HolidayCount} holidays", response.Holidays.Count);
     }
 
+
     /// <summary>
-    /// Streams public holidays for a specific year and state.
+    /// Streams public holidays for a specific year and German state using strongly-typed enum.
     /// </summary>
     /// <param name="year">The year for which holidays are requested.</param>
-    /// <param name="state">The state code (e.g., "by" for Bavaria).</param>
+    /// <param name="state">The German state enum value.</param>
     /// <param name="allStates">Include only holidays valid in all states.</param>
     /// <param name="catholic">Filter by Catholic holidays.</param>
     /// <param name="augsburg">Filter by Augsburg-specific holidays.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>An asynchronous enumerable of holidays.</returns>
+    /// <example>
+    /// <code>
+    /// await foreach (var holiday in client.StreamPublicHolidays(2024, GermanState.Bavaria))
+    /// {
+    ///     Console.WriteLine(holiday.Name);
+    /// }
+    /// </code>
+    /// </example>
     public IAsyncEnumerable<Holiday> StreamPublicHolidays(
         int year,
-        string state,
+        GermanState state,
         bool allStates = false,
         bool? catholic = null,
         bool? augsburg = null,
@@ -134,18 +209,28 @@ public sealed class FeiertageApiClient : IFeiertageApiClient, IDisposable, IAsyn
         => StreamPublicHolidays(new HolidayRequest([year], [state], allStates, catholic, augsburg), cancellationToken);
 
     /// <summary>
-    /// Streams public holidays for multiple years and states.
+    /// Streams public holidays for multiple years and German states using strongly-typed enums.
     /// </summary>
     /// <param name="years">Collection of years for which holidays are requested.</param>
-    /// <param name="states">Collection of state codes.</param>
+    /// <param name="states">Collection of German state enum values.</param>
     /// <param name="allStates">Include only holidays valid in all states.</param>
     /// <param name="catholic">Filter by Catholic holidays.</param>
     /// <param name="augsburg">Filter by Augsburg-specific holidays.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>An asynchronous enumerable of holidays.</returns>
+    /// <example>
+    /// <code>
+    /// await foreach (var holiday in client.StreamPublicHolidays(
+    ///     new[] { 2024, 2025 },
+    ///     new[] { GermanState.Bavaria, GermanState.Berlin }))
+    /// {
+    ///     Console.WriteLine($"{holiday.Date}: {holiday.Name}");
+    /// }
+    /// </code>
+    /// </example>
     public IAsyncEnumerable<Holiday> StreamPublicHolidays(
         IEnumerable<int> years,
-        IEnumerable<string> states,
+        IEnumerable<GermanState> states,
         bool allStates = false,
         bool? catholic = null,
         bool? augsburg = null,
@@ -181,7 +266,7 @@ public sealed class FeiertageApiClient : IFeiertageApiClient, IDisposable, IAsyn
             queryDict.Add("all_states", "true");
 
         if (request.States.Any())
-            queryDict.Add("states", string.Join(",", request.States));
+            queryDict.Add("states", string.Join(",", request.States.Select(s => s.ToStateCode())));
 
         if (request.Years.Any())
             queryDict.Add("years", string.Join(",", request.Years));

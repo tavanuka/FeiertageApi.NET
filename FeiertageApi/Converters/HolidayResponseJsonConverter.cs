@@ -1,4 +1,5 @@
-﻿using FeiertageApi.Models;
+﻿using FeiertageApi.Extensions;
+using FeiertageApi.Models;
 using FeiertageApi.Utilities;
 using System;
 using System.Collections.Generic;
@@ -89,10 +90,8 @@ public sealed class HolidayResponseJsonConverter : JsonConverter<HolidayResponse
             // State flags as individual properties (bw/by/...) in the API format
             foreach (var kvp in h.States)
             {
-                if (string.IsNullOrWhiteSpace(kvp.Key))
-                    continue;
-
-                writer.WriteString(kvp.Key, kvp.Value ? "1" : "0");
+                var stateCode = kvp.Key.ToStateCode();
+                writer.WriteString(stateCode, kvp.Value ? "1" : "0");
             }
 
             writer.WriteString("comment", h.Comment);
@@ -148,7 +147,7 @@ public sealed class HolidayResponseJsonConverter : JsonConverter<HolidayResponse
         DateOnly date = default;
         var name = string.Empty;
         var allStates = false;
-        var states = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        var states = new Dictionary<GermanState, bool>();
         var comment = string.Empty;
         bool? augsburg = null;
         bool? catholic = null;
@@ -208,7 +207,16 @@ public sealed class HolidayResponseJsonConverter : JsonConverter<HolidayResponse
                     // but we guard against known top-level fields.
                     if (!KnownHolidayFields.Contains(propName))
                     {
-                        states[propName] = JsonConverterHelper.ReadBoolish(ref reader);
+                        // Try to parse the state code to a GermanState enum
+                        if (GermanStateExtensions.TryParseStateCode(propName, out var state))
+                        {
+                            states[state] = JsonConverterHelper.ReadBoolish(ref reader);
+                        }
+                        else
+                        {
+                            // Unknown state code, skip it
+                            reader.Skip();
+                        }
                     }
                     else
                     {

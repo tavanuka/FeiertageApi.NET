@@ -23,9 +23,9 @@ public interface IFeiertageApiClient
 
     Task<HolidayResponse> GetPublicHolidays(bool allStates = false, bool? catholic = null, bool? augsburg = null, CancellationToken cancellationToken = default);
     Task<HolidayResponse> GetPublicHolidays(int year, bool allStates = false, bool? catholic = null, bool? augsburg = null, CancellationToken cancellationToken = default);
-    Task<HolidayResponse> GetPublicHolidays(int year, string state, bool allStates = false, bool? catholic = null, bool? augsburg = null, CancellationToken cancellationToken = default);
-    Task<HolidayResponse> GetPublicHolidays(int year, IEnumerable<string> states, bool allStates = false, bool? catholic = null, bool? augsburg = null, CancellationToken cancellationToken = default);
-    Task<HolidayResponse> GetPublicHolidays(IEnumerable<int> years, IEnumerable<string> states, bool allStates = false, bool? catholic = null, bool? augsburg = null, CancellationToken cancellationToken = default);
+    Task<HolidayResponse> GetPublicHolidays(int year, GermanState state, bool allStates = false, bool? catholic = null, bool? augsburg = null, CancellationToken cancellationToken = default);
+    Task<HolidayResponse> GetPublicHolidays(int year, IEnumerable<GermanState> states, bool allStates = false, bool? catholic = null, bool? augsburg = null, CancellationToken cancellationToken = default);
+    Task<HolidayResponse> GetPublicHolidays(IEnumerable<int> years, IEnumerable<GermanState> states, bool allStates = false, bool? catholic = null, bool? augsburg = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Streams public holidays based on the specified criteria, yielding one holiday at a time.
@@ -50,36 +50,18 @@ public interface IFeiertageApiClient
     IAsyncEnumerable<Holiday> StreamPublicHolidays(
         HolidayRequest request,
         CancellationToken cancellationToken = default);
-    /// <summary>
-    /// Streams public holidays for a specific year and state.
-    /// </summary>
-    /// <param name="year">The year for which holidays are requested.</param>
-    /// <param name="state">The state code (e.g., "by" for Bavaria).</param>
-    /// <param name="allStates">Include only holidays valid in all states.</param>
-    /// <param name="catholic">Filter by Catholic holidays.</param>
-    /// <param name="augsburg">Filter by Augsburg-specific holidays.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>An asynchronous enumerable of holidays.</returns>
+
     IAsyncEnumerable<Holiday> StreamPublicHolidays(
         int year,
-        string state,
+        GermanState state,
         bool allStates = false,
         bool? catholic = null,
         bool? augsburg = null,
         CancellationToken cancellationToken = default);
-    /// <summary>
-    /// Streams public holidays for multiple years and states.
-    /// </summary>
-    /// <param name="years">Collection of years for which holidays are requested.</param>
-    /// <param name="states">Collection of state codes.</param>
-    /// <param name="allStates">Include only holidays valid in all states.</param>
-    /// <param name="catholic">Filter by Catholic holidays.</param>
-    /// <param name="augsburg">Filter by Augsburg-specific holidays.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>An asynchronous enumerable of holidays.</returns>
+
     IAsyncEnumerable<Holiday> StreamPublicHolidays(
         IEnumerable<int> years,
-        IEnumerable<string> states,
+        IEnumerable<GermanState> states,
         bool allStates = false,
         bool? catholic = null,
         bool? augsburg = null,
