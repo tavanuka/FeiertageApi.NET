@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Solution items/">
     <File Path=".gitignore" />
+    <File Path="README.md" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="FeiertageApi.Extensions.AspNetCore/FeiertageApi.Extensions.AspNetCore.csproj" />
