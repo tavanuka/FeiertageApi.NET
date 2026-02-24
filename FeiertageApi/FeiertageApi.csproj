@@ -1,15 +1,42 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
+        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
         <Nullable>enable</Nullable>
+
+        <!-- Package metadata -->
+        <PackageId>FeiertageApi.NET</PackageId>
+        <Description>A strongly-typed .NET client library for the Feiertage API (feiertage-api.de), providing type-safe access to German public holiday data for all 16 federal states.</Description>
+        <Authors>tavanuka</Authors>
+        <PackageTags>feiertage;holidays;german;germany;public-holidays;api-client;bundesland</PackageTags>
+        <PackageProjectUrl>https://github.com/tavanuka/FeiertageApi.NET</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/tavanuka/FeiertageApi.NET</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+
+        <!-- Source link and symbols -->
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="FeiertageApi.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\README.md" Pack="true" PackagePath="\" />
+        <None Include="..\THIRD-PARTY-NOTICES.txt" Pack="true" PackagePath="\" />
+    </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
       <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.3" />
       <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.3.0" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
+      <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
     </ItemGroup>
 
 </Project>
