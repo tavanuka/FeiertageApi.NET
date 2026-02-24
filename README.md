@@ -1,4 +1,7 @@
 # FeiertageApi.NET
+[![Build & Test](https://github.com/tavanuka/FeiertageApi.NET/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/tavanuka/FeiertageApi.NET/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/tavanuka/FeiertageApi.NET/graph/badge.svg?token=UR5TXTIXP9)](https://codecov.io/gh/tavanuka/FeiertageApi.NET)
+[![NuGet](https://img.shields.io/nuget/v/FeiertageApi.NET.svg)](https://www.nuget.org/packages/FeiertageApi.NET/)
 
 A modern .NET library for accessing German public holidays through the [Feiertage API](https://feiertage-api.de/).
 
