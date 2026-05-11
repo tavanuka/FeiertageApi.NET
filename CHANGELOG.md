@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-05-11
+
 ### Added
 
 - Initial release publication
@@ -9,4 +11,6 @@
 - Continuous integration using GitHub Actions for release automation. #13
 - Initial `CHANGELOG.md` following the Keep a Changelog format.
 
-[Unreleased]: https://github.com/tavanuka/FeiertageApi.NET/commits/master
+
+[Unreleased]: https://github.com/tavanuka/FeiertageApi.NET/compare/0.1.0...HEAD
+[0.1.0]: https://github.com/tavanuka/FeiertageApi.NET/releases/tag/0.1.0
