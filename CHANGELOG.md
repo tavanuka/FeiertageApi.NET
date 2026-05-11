@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Changed
+- Introduce centralized package management
+- Remove unnecessary package dependencies from the core library
+
+### Fixed
+- `FeiertageApi.Extensions.AspNetCore` did not contain any code. The package should have the correct extensions and dependencies now.
+
 ## [0.1.0] - 2026-05-11
 
 ### Added
