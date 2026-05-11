@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### Added
+- Smoke tests against the real API
+- More tests to improve code coverage and robustness
+- Source generation for the Feiertage JSON context and converters
+
+### Fixed
+- Base URL's DNS could not be resolved
+- Tests for the client were flaky and not representing the real API changes
+
+### Changed
+- Add more leniency for parsing 'status' values for 'HolidayResponse'
+- Refactor `HolidayResponse` JSON converter to be more maintainable
+- Refactor Exception definitions to be more consistent and protect against invocation outside of the library
+- Drop `Moq` utilisation for single-purpose stubs and test harness
+- (Extensions.AspNetCore): Explicitly create a typed client for the API
+- Adjust certain constructor visibility to be more consistent with the library's design
+
 ## [0.1.1] - 2026-05-11
 
 ### Changed
