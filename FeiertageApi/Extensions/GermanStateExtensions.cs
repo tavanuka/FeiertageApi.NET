@@ -77,11 +77,13 @@ public static class GermanStateExtensions
 
         var normalizedCode = stateCode.Trim().ToLowerInvariant();
 
-        foreach (var state in Enum.GetValues<GermanState>())
-            if (state.ToStateCode().Equals(normalizedCode, StringComparison.OrdinalIgnoreCase))
-                return state;
-
-        throw new ArgumentException($"Invalid state code: '{stateCode}'. Expected one of: bw, by, be, bb, hb, hh, he, mv, ni, nw, rp, sl, sn, st, sh, th.", nameof(stateCode));
+        return Enum.GetValues<GermanState>()
+            .Where(s => s.ToStateCode().Equals(normalizedCode, StringComparison.OrdinalIgnoreCase))
+            .Select(s => (GermanState?)s)
+            .FirstOrDefault()
+            ?? throw new ArgumentException(
+                $"Invalid state code: '{stateCode}'.",
+                nameof(stateCode));
     }
 
     /// <summary>
