@@ -2,12 +2,15 @@
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-11
+
 ### Changed
 - Introduce centralized package management
 - Remove unnecessary package dependencies from the core library
 
 ### Fixed
 - `FeiertageApi.Extensions.AspNetCore` did not contain any code. The package should have the correct extensions and dependencies now.
+
 
 ## [0.1.0] - 2026-05-11
 
@@ -19,5 +22,6 @@
 - Initial `CHANGELOG.md` following the Keep a Changelog format.
 
 
-[Unreleased]: https://github.com/tavanuka/FeiertageApi.NET/compare/0.1.0...HEAD
+[Unreleased]: https://github.com/tavanuka/FeiertageApi.NET/compare/0.1.1...HEAD
+[0.1.1]: https://github.com/tavanuka/FeiertageApi.NET/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/tavanuka/FeiertageApi.NET/releases/tag/0.1.0
