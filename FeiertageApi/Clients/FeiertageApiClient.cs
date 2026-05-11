@@ -31,7 +31,7 @@ public sealed class FeiertageApiClient : IFeiertageApiClient, IDisposable, IAsyn
     /// </summary>
     /// <param name="httpClient">The HttpClient to use for API requests. The caller is responsible for disposal.</param>
     /// <param name="logger">Optional logger for diagnostic information.</param>
-    public FeiertageApiClient(HttpClient httpClient, ILogger<FeiertageApiClient>? logger = null)
+    internal FeiertageApiClient(HttpClient httpClient, ILogger<FeiertageApiClient>? logger = null)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? NullLogger<FeiertageApiClient>.Instance;
