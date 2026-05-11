@@ -1,0 +1,14 @@
+<Project>
+
+    <!-- Packable-only settings. Evaluated after each csproj has set its own IsPackable. -->
+    <PropertyGroup Condition="'$(IsPackable)' != 'false'">
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(IsPackable)' != 'false'">
+        <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
+        <None Include="$(MSBuildThisFileDirectory)THIRD-PARTY-NOTICES.txt" Pack="true" PackagePath="\" />
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.103" PrivateAssets="All" />
+    </ItemGroup>
+
+</Project>
