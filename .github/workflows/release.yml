@@ -1,0 +1,167 @@
+name: Release
+
+on:
+  release:
+    types: [released, prereleased]
+
+jobs:
+  publish:
+    name: Publish NuGet
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5.1.0
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Pack
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          dotnet pack FeiertageApi/FeiertageApi.csproj \
+            -c Release \
+            -p:Version=$VERSION \
+            -o ./artifacts
+          dotnet pack FeiertageApi.Extensions.AspNetCore/FeiertageApi.Extensions.AspNetCore.csproj \
+            -c Release \
+            -p:Version=$VERSION \
+            -o ./artifacts
+
+      - name: Attach packages to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.event.release.tag_name }}" ./artifacts/* --clobber
+
+      - name: NuGet login (Trusted Publishing)
+        uses: NuGet/login@v1
+        id: nuget-login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Publish to NuGet.org
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+        run: |
+          dotnet nuget push "./artifacts/*.nupkg" \
+            --api-key "$NUGET_API_KEY" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+      # Promote [Unreleased] content into a versioned section using the release body
+      # (which may have been edited on GitHub). Updates link references at the bottom.
+      - name: Patch CHANGELOG
+        if: ${{ github.event.release.body != '' }}
+        env:
+          RELEASE_BODY: ${{ github.event.release.body }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          REPO_URL: https://github.com/${{ github.repository }}
+        run: |
+          TODAY=$(date +%Y-%m-%d)
+          BODY_FILE="${RUNNER_TEMP}/release-body.md"
+          printf '%s\n' "$RELEASE_BODY" \
+            | awk '/^$/ { if (printed) buffer++; next } { while (buffer-- > 0) print ""; buffer = 0; print; printed = 1 }' \
+            > "$BODY_FILE"
+
+          PREV=$(awk -F'[][]' '/^## \[/ && !/^## \[Unreleased\]/ { print $2; exit }' CHANGELOG.md)
+
+          TMP="${RUNNER_TEMP}/changelog.tmp"
+          awk -v v="$RELEASE_TAG" -v d="$TODAY" -v bf="$BODY_FILE" '
+            BEGIN { state = "before" }
+            state == "skip" {
+              if (/^## \[/ || /^\[[^]]+\]:/) {
+                print ""
+                print
+                state = "after"
+              }
+              next
+            }
+            /^## \[Unreleased\]/ && state == "before" {
+              print
+              print ""
+              print "## [" v "] - " d
+              print ""
+              while ((getline line < bf) > 0) print line
+              close(bf)
+              state = "skip"
+              next
+            }
+            { print }
+          ' CHANGELOG.md > "$TMP"
+
+          if [ -n "$PREV" ]; then
+            NEW_LINK="[${RELEASE_TAG}]: ${REPO_URL}/compare/${PREV}...${RELEASE_TAG}"
+          else
+            NEW_LINK="[${RELEASE_TAG}]: ${REPO_URL}/releases/tag/${RELEASE_TAG}"
+          fi
+          UNRELEASED_LINK="[Unreleased]: ${REPO_URL}/compare/${RELEASE_TAG}...HEAD"
+
+          awk -v u="$UNRELEASED_LINK" -v n="$NEW_LINK" '
+            /^\[Unreleased\]:/ {
+              print u
+              print n
+              next
+            }
+            { print }
+          ' "$TMP" > CHANGELOG.md
+
+      # Bump <VersionPrefix> to the next patch so master is ready for the next
+      # draft release. Skipped on prereleases — the planned stable line stays.
+      - name: Bump VersionPrefix to next patch
+        if: ${{ github.event.action == 'released' }}
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          IFS='.' read -r MAJOR MINOR PATCH <<< "${RELEASE_TAG%%-*}"
+          if [[ ! "$MAJOR" =~ ^[0-9]+$ || ! "$MINOR" =~ ^[0-9]+$ || ! "$PATCH" =~ ^[0-9]+$ ]]; then
+            echo "::error::Cannot parse '$RELEASE_TAG' as MAJOR.MINOR.PATCH."
+            exit 1
+          fi
+          NEXT="$MAJOR.$MINOR.$((PATCH + 1))"
+          sed -i -E "s|<VersionPrefix>[^<]+</VersionPrefix>|<VersionPrefix>$NEXT</VersionPrefix>|" Directory.Build.props
+          echo "Bumped <VersionPrefix> to $NEXT."
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "any=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "any=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create pull request
+        if: ${{ steps.changes.outputs.any == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          BRANCH="changelog-update-$VERSION"
+          LABEL="release changelog"
+
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+          git checkout -b $BRANCH
+          git commit -am "Changelog update - $VERSION"
+          git push --set-upstream origin $BRANCH
+
+          gh label create "$LABEL" \
+            --description "Pull requests with release changelog update" \
+            --force \
+            || true
+
+          gh pr create \
+            --title "Post-release update - \`$VERSION\`" \
+            --body "Patched \`CHANGELOG.md\` and bumped \`<VersionPrefix>\` to the next patch for the \`$VERSION\` release." \
+            --label "$LABEL" \
+            --head $BRANCH
