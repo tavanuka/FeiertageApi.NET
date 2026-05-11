@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-05-11
+
 ### Added
 - Smoke tests against the real API
 - More tests to improve code coverage and robustness
@@ -21,6 +23,15 @@
 - Adjust certain constructor visibility to be more consistent with the library's design
 - Hard-code ``GermanState`` literal values to introduce better AOT compatibility
 - Improve the ``GermanState`` value querying
+
+## What's Changed
+* Post-release update - `0.1.1` by @github-actions[bot] in https://github.com/tavanuka/FeiertageApi.NET/pull/34
+* feat: Improve exception handling and test coverage for API client by @tavanuka in https://github.com/tavanuka/FeiertageApi.NET/pull/35
+
+## New Contributors
+* @github-actions[bot] made their first contribution in https://github.com/tavanuka/FeiertageApi.NET/pull/34
+
+**Full Changelog**: https://github.com/tavanuka/FeiertageApi.NET/compare/0.1.1...0.1.2
 
 ## [0.1.1] - 2026-05-11
 
@@ -42,6 +53,7 @@
 - Initial `CHANGELOG.md` following the Keep a Changelog format.
 
 
-[Unreleased]: https://github.com/tavanuka/FeiertageApi.NET/compare/0.1.1...HEAD
+[Unreleased]: https://github.com/tavanuka/FeiertageApi.NET/compare/0.1.2...HEAD
+[0.1.2]: https://github.com/tavanuka/FeiertageApi.NET/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/tavanuka/FeiertageApi.NET/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/tavanuka/FeiertageApi.NET/releases/tag/0.1.0
