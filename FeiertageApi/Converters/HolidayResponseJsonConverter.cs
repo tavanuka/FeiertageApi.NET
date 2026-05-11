@@ -50,7 +50,14 @@ public sealed class HolidayResponseJsonConverter : JsonConverter<HolidayResponse
             switch (propName)
             {
                 case "status":
-                    status = reader.TokenType == JsonTokenType.String ? reader.GetString() : throw new JsonException("status must be a string.");
+                    // ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
+                    status = reader.TokenType switch
+                    {
+                        JsonTokenType.String => reader.GetString(),
+                        JsonTokenType.Number => reader.GetInt32().ToString(),
+                        JsonTokenType.Null => string.Empty,
+                        _ => throw new JsonException("status must be a string.")
+                    };
                     break;
                 case "feiertage":
                     holidays = ReadHolidaysArray(ref reader);
@@ -174,54 +181,23 @@ public sealed class HolidayResponseJsonConverter : JsonConverter<HolidayResponse
                 case "date":
                     date = JsonConverterHelper.ParseDateOnly(ref reader);
                     break;
-
                 case "fname":
-                    name = reader.TokenType == JsonTokenType.String 
-                        ? reader.GetString() ?? string.Empty 
-                        : throw new JsonException("fname must be a string.");
+                    name = ReadFname(ref reader);
                     break;
-
                 case "all_states":
                     allStates = JsonConverterHelper.ReadBoolish(ref reader);
                     break;
-
                 case "comment":
-                    comment = reader.TokenType switch
-                    {
-                        JsonTokenType.String => reader.GetString() ?? string.Empty,
-                        JsonTokenType.Null => string.Empty,
-                        _ => throw new JsonException("comment must be a string or null.")
-                    };
+                    comment = ReadComment(ref reader);
                     break;
-
                 case "augsburg":
                     augsburg = JsonConverterHelper.ReadNullableBoolish(ref reader);
                     break;
-
                 case "katholisch":
                     catholic = JsonConverterHelper.ReadNullableBoolish(ref reader);
                     break;
-
                 default:
-                    // Any unknown property in holiday object is treated as a "state flag" (bw/by/...)
-                    // but we guard against known top-level fields.
-                    if (!KnownHolidayFields.Contains(propName))
-                    {
-                        // Try to parse the state code to a GermanState enum
-                        if (GermanStateExtensions.TryParseStateCode(propName, out var state))
-                        {
-                            states[state] = JsonConverterHelper.ReadBoolish(ref reader);
-                        }
-                        else
-                        {
-                            // Unknown state code, skip it
-                            reader.Skip();
-                        }
-                    }
-                    else
-                    {
-                        reader.Skip();
-                    }
+                    ReadStateFlagOrSkip(ref reader, propName, states);
                     break;
             }
         }
@@ -234,5 +210,40 @@ public sealed class HolidayResponseJsonConverter : JsonConverter<HolidayResponse
             Comment: comment,
             Augsburg: augsburg,
             Catholic: catholic);
+    }
+
+    private static string ReadFname(ref Utf8JsonReader reader)
+        => reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? string.Empty
+            : throw new JsonException("fname must be a string.");
+
+    // ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
+    private static string ReadComment(ref Utf8JsonReader reader)
+        => reader.TokenType switch
+        {
+            JsonTokenType.String => reader.GetString() ?? string.Empty,
+            JsonTokenType.Null => string.Empty,
+            _ => throw new JsonException("comment must be a string or null.")
+        };
+
+    /// <summary>
+    /// Unknown properties on a holiday object are treated as state flags (bw/by/...).
+    /// Guards against known top-level fields and silently skips unrecognised state codes.
+    /// </summary>
+    private static void ReadStateFlagOrSkip(
+        ref Utf8JsonReader reader,
+        string propName,
+        Dictionary<GermanState, bool> states)
+    {
+        if (KnownHolidayFields.Contains(propName))
+        {
+            reader.Skip();
+            return;
+        }
+
+        if (GermanStateExtensions.TryParseStateCode(propName, out var state))
+            states[state] = JsonConverterHelper.ReadBoolish(ref reader);
+        else
+            reader.Skip();
     }
 }

@@ -182,10 +182,20 @@ public class HolidayResponseJsonConverterTests
     [InlineData("")]
     [InlineData("{")]
     [InlineData("[]")]
-    [InlineData("{\"status\": 123}")]
     public void Deserialize_ShouldThrow_WhenInvalidJson(string json)
     {
         // Act & Assert
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<HolidayResponse>(json));
+    }
+
+    [Theory]
+    [InlineData("{\"status\": 123}", "123")]
+    [InlineData("{\"status\": null}", "")]
+    public void Deserialize_ShouldCoerceNonStringStatusToString(string json, string expectedStatus)
+    {
+        var result = JsonSerializer.Deserialize<HolidayResponse>(json);
+
+        Assert.NotNull(result);
+        Assert.Equal(expectedStatus, result.Status);
     }
 }
