@@ -1,106 +1,57 @@
-using System.ComponentModel;
-
 namespace FeiertageApi.Models;
 
 /// <summary>
 /// Represents the 16 federal states (Bundesländer) of Germany.
-/// Each state has a two-letter code used by the Feiertage API.
+/// Each state has a two-letter code used by the Feiertage API; the mapping lives in
+/// <see cref="FeiertageApi.Extensions.GermanStateExtensions.ToStateCode"/>.
 /// </summary>
 public enum GermanState
 {
-    /// <summary>
-    /// Baden-Württemberg (bw)
-    /// </summary>
-    [Description("bw")]
+    /// <summary>Baden-Württemberg (bw)</summary>
     BadenWuerttemberg,
 
-    /// <summary>
-    /// Bavaria / Bayern (by)
-    /// </summary>
-    [Description("by")]
+    /// <summary>Bavaria / Bayern (by)</summary>
     Bavaria,
 
-    /// <summary>
-    /// Berlin (be)
-    /// </summary>
-    [Description("be")]
+    /// <summary>Berlin (be)</summary>
     Berlin,
 
-    /// <summary>
-    /// Brandenburg (bb)
-    /// </summary>
-    [Description("bb")]
+    /// <summary>Brandenburg (bb)</summary>
     Brandenburg,
 
-    /// <summary>
-    /// Bremen (hb)
-    /// </summary>
-    [Description("hb")]
+    /// <summary>Bremen (hb)</summary>
     Bremen,
 
-    /// <summary>
-    /// Hamburg (hh)
-    /// </summary>
-    [Description("hh")]
+    /// <summary>Hamburg (hh)</summary>
     Hamburg,
 
-    /// <summary>
-    /// Hesse / Hessen (he)
-    /// </summary>
-    [Description("he")]
+    /// <summary>Hesse / Hessen (he)</summary>
     Hesse,
 
-    /// <summary>
-    /// Mecklenburg-Vorpommern (mv)
-    /// </summary>
-    [Description("mv")]
+    /// <summary>Mecklenburg-Vorpommern (mv)</summary>
     MecklenburgVorpommern,
 
-    /// <summary>
-    /// Lower Saxony / Niedersachsen (ni)
-    /// </summary>
-    [Description("ni")]
+    /// <summary>Lower Saxony / Niedersachsen (ni)</summary>
     LowerSaxony,
 
-    /// <summary>
-    /// North Rhine-Westphalia / Nordrhein-Westfalen (nw)
-    /// </summary>
-    [Description("nw")]
+    /// <summary>North Rhine-Westphalia / Nordrhein-Westfalen (nw)</summary>
     NorthRhineWestphalia,
 
-    /// <summary>
-    /// Rhineland-Palatinate / Rheinland-Pfalz (rp)
-    /// </summary>
-    [Description("rp")]
+    /// <summary>Rhineland-Palatinate / Rheinland-Pfalz (rp)</summary>
     RhinelandPalatinate,
 
-    /// <summary>
-    /// Saarland (sl)
-    /// </summary>
-    [Description("sl")]
+    /// <summary>Saarland (sl)</summary>
     Saarland,
 
-    /// <summary>
-    /// Saxony / Sachsen (sn)
-    /// </summary>
-    [Description("sn")]
+    /// <summary>Saxony / Sachsen (sn)</summary>
     Saxony,
 
-    /// <summary>
-    /// Saxony-Anhalt / Sachsen-Anhalt (st)
-    /// </summary>
-    [Description("st")]
+    /// <summary>Saxony-Anhalt / Sachsen-Anhalt (st)</summary>
     SaxonyAnhalt,
 
-    /// <summary>
-    /// Schleswig-Holstein (sh)
-    /// </summary>
-    [Description("sh")]
+    /// <summary>Schleswig-Holstein (sh)</summary>
     SchleswigHolstein,
 
-    /// <summary>
-    /// Thuringia / Thüringen (th)
-    /// </summary>
-    [Description("th")]
+    /// <summary>Thuringia / Thüringen (th)</summary>
     Thuringia
 }

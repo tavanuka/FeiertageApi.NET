@@ -33,7 +33,7 @@ jobs:
         run: dotnet build FeiertageApi.NET.slnx -c Debug --no-restore
 
       - name: Test
-        run: dotnet test FeiertageApi.Tests/FeiertageApi.Tests.csproj -c Debug --no-build --no-restore --collect:"XPlat Code Coverage" --results-directory ./TestResults
+        run: dotnet test FeiertageApi.Tests/FeiertageApi.Tests.csproj -c Debug --no-build --no-restore --collect:"XPlat Code Coverage" --results-directory ./TestResults --filter "Category!=Integration"
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

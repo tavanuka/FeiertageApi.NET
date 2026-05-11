@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FeiertageApi\FeiertageApi.csproj" />
+    <ProjectReference Include="..\FeiertageApi.Extensions.AspNetCore\FeiertageApi.Extensions.AspNetCore.csproj" />
   </ItemGroup>
 
 </Project>

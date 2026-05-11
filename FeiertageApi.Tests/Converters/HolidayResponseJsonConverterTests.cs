@@ -178,14 +178,60 @@ public class HolidayResponseJsonConverterTests
         Assert.True(deserialized.Holidays[0].States[GermanState.Bavaria]);
     }
 
+    [Fact]
+    public void Deserialize_SkipsKnownHolidayField_WhenCaseDiffersFromSwitchCase()
+    {
+        // The switch in ReadHolidayObject matches "comment" case-sensitively, but
+        // KnownHolidayFields uses OrdinalIgnoreCase. An uppercase "COMMENT" falls
+        // through to the default branch (ReadStateFlagOrSkip), where the guard hits
+        // and skips the value rather than trying to parse it as a state code.
+        var json = """
+        {
+            "status": "success",
+            "feiertage": [
+                {
+                    "date": "2024-12-25",
+                    "fname": "Christmas",
+                    "all_states": "1",
+                    "by": "1",
+                    "COMMENT": "would otherwise leak into the States dictionary",
+                    "augsburg": null,
+                    "katholisch": null
+                }
+            ]
+        }
+        """;
+
+        var result = JsonSerializer.Deserialize<HolidayResponse>(json);
+
+        Assert.NotNull(result);
+        Assert.Single(result.Holidays);
+        var holiday = result.Holidays[0];
+        // Only the valid two-letter "by" code should appear in States; the cased-different
+        // known field name is not treated as a state.
+        Assert.Equal([GermanState.Bavaria], holiday.States.Keys);
+        // The case-mismatched "COMMENT" value was skipped, so Comment remains its default.
+        Assert.Empty(holiday.Comment);
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("{")]
     [InlineData("[]")]
-    [InlineData("{\"status\": 123}")]
     public void Deserialize_ShouldThrow_WhenInvalidJson(string json)
     {
         // Act & Assert
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<HolidayResponse>(json));
+    }
+
+    [Theory]
+    [InlineData("{\"status\": 123}", "123")]
+    [InlineData("{\"status\": null}", "")]
+    public void Deserialize_ShouldCoerceNonStringStatusToString(string json, string expectedStatus)
+    {
+        var result = JsonSerializer.Deserialize<HolidayResponse>(json);
+
+        Assert.NotNull(result);
+        Assert.Equal(expectedStatus, result.Status);
     }
 }

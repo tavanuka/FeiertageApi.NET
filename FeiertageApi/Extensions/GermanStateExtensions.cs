@@ -1,9 +1,7 @@
 using FeiertageApi.Models;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
 
 namespace FeiertageApi.Extensions;
 
@@ -17,20 +15,35 @@ public static class GermanStateExtensions
     /// </summary>
     /// <param name="state">The German state enum value.</param>
     /// <returns>The two-letter state code used by the Feiertage API.</returns>
+    /// <remarks>
+    /// The mapping is hardcoded rather than reflected from the <c>[Description]</c> attributes
+    /// on <see cref="GermanState"/> so that this code is AOT- and trimming-safe.
+    /// </remarks>
     /// <example>
     /// <code>
     /// var code = GermanState.Bavaria.ToStateCode(); // Returns "by"
     /// </code>
     /// </example>
-    public static string ToStateCode(this GermanState state)
+    public static string ToStateCode(this GermanState state) => state switch
     {
-        var field = state.GetType().GetField(state.ToString());
-        if (field == null)
-            return state.ToString().ToLowerInvariant();
-
-        var attribute = field.GetCustomAttribute<DescriptionAttribute>();
-        return attribute?.Description ?? state.ToString().ToLowerInvariant();
-    }
+        GermanState.BadenWuerttemberg => "bw",
+        GermanState.Bavaria => "by",
+        GermanState.Berlin => "be",
+        GermanState.Brandenburg => "bb",
+        GermanState.Bremen => "hb",
+        GermanState.Hamburg => "hh",
+        GermanState.Hesse => "he",
+        GermanState.MecklenburgVorpommern => "mv",
+        GermanState.LowerSaxony => "ni",
+        GermanState.NorthRhineWestphalia => "nw",
+        GermanState.RhinelandPalatinate => "rp",
+        GermanState.Saarland => "sl",
+        GermanState.Saxony => "sn",
+        GermanState.SaxonyAnhalt => "st",
+        GermanState.SchleswigHolstein => "sh",
+        GermanState.Thuringia => "th",
+        _ => throw new ArgumentOutOfRangeException(nameof(state), state, "Unknown GermanState value.")
+    };
 
     /// <summary>
     /// Converts a collection of GermanState enum values to their corresponding API codes.
@@ -64,11 +77,13 @@ public static class GermanStateExtensions
 
         var normalizedCode = stateCode.Trim().ToLowerInvariant();
 
-        foreach (var state in Enum.GetValues<GermanState>())
-            if (state.ToStateCode().Equals(normalizedCode, StringComparison.OrdinalIgnoreCase))
-                return state;
-
-        throw new ArgumentException($"Invalid state code: '{stateCode}'. Expected one of: bw, by, be, bb, hb, hh, he, mv, ni, nw, rp, sl, sn, st, sh, th.", nameof(stateCode));
+        return Enum.GetValues<GermanState>()
+            .Where(s => s.ToStateCode().Equals(normalizedCode, StringComparison.OrdinalIgnoreCase))
+            .Select(s => (GermanState?)s)
+            .FirstOrDefault()
+            ?? throw new ArgumentException(
+                $"Invalid state code: '{stateCode}'.",
+                nameof(stateCode));
     }
 
     /// <summary>

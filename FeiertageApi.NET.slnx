@@ -9,6 +9,7 @@
     <Project Path="FeiertageApi/FeiertageApi.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="FeiertageApi.Extensions.AspNetCore.Tests/FeiertageApi.Extensions.AspNetCore.Tests.csproj" />
     <Project Path="FeiertageApi.Tests/FeiertageApi.Tests.csproj" />
   </Folder>
 </Solution>
