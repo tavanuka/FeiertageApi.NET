@@ -8,7 +8,7 @@
 [![NuGet](https://img.shields.io/nuget/v/FeiertageApi.svg?label=FeiertageApi)](https://www.nuget.org/packages/FeiertageApi/)
 [![NuGet](https://img.shields.io/nuget/v/FeiertageApi.Extensions.AspNetCore.svg?label=FeiertageApi.Extensions.AspNetCore)](https://www.nuget.org/packages/FeiertageApi.Extensions.AspNetCore/)
 
-A modern .NET library for accessing German public holidays through the [Feiertage API](https://feiertage-api.de/).
+A modern .NET library for accessing German public holidays through the [Feiertage API](https://api-feiertage.de/).
 
 ## Features
 
@@ -251,11 +251,11 @@ dotnet publish -c Release -r win-x64 -p:PublishAot=true
 
 ## API Reference
 
-Full API documentation is available at [https://feiertage-api.de/](https://feiertage-api.de/)
+Full API documentation is available at [https://api-feiertage.de/](https://api-feiertage.de/)
 
 ## License
 
-This library is provided as-is. The Feiertage API is provided by [feiertage-api.de](https://feiertage-api.de/).
+This library is provided as-is. The Feiertage API is provided by [api-feiertage.de](https://api-feiertage.de/).
 
 ## Contributing
 
@@ -265,4 +265,4 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 
 For issues with this library, please open an issue on GitHub.
 
-For questions about the Feiertage API itself, visit [https://feiertage-api.de/](https://feiertage-api.de/).
+For questions about the Feiertage API itself, visit [https://api-feiertage.de/](https://api-feiertage.de/).
