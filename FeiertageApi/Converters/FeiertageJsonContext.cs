@@ -18,6 +18,4 @@ namespace FeiertageApi.Converters;
 /// no reflection scan to discover the converter and no runtime <c>JsonTypeInfo</c> creation.
 /// </remarks>
 [JsonSerializable(typeof(HolidayResponse))]
-public partial class FeiertageJsonContext : JsonSerializerContext
-{
-}
+internal partial class FeiertageJsonContext : JsonSerializerContext;
