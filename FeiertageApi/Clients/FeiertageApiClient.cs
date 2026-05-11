@@ -1,4 +1,5 @@
-﻿using FeiertageApi.Exceptions;
+﻿using FeiertageApi.Converters;
+using FeiertageApi.Exceptions;
 using FeiertageApi.Extensions;
 using FeiertageApi.Models;
 using FeiertageApi.Utilities;
@@ -327,7 +328,7 @@ public sealed class FeiertageApiClient : IFeiertageApiClient, IDisposable, IAsyn
         HolidayResponse? holidayResponse;
         try
         {
-            holidayResponse = JsonSerializer.Deserialize<HolidayResponse>(responseContent);
+            holidayResponse = JsonSerializer.Deserialize(responseContent, FeiertageJsonContext.Default.HolidayResponse);
         }
         catch (JsonException ex)
         {
