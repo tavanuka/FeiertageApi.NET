@@ -14,6 +14,7 @@ internal sealed class StubHttpMessageHandler(Func<HttpRequestMessage, HttpRespon
         CancellationToken cancellationToken)
     {
         LastRequest = request;
+        cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(respond(request));
     }
 }

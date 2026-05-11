@@ -86,6 +86,66 @@ public class FeiertageApiClientTests
         var ex = await Assert.ThrowsAsync<FeiertageApiHttpException>(
             () => harness.Client.GetPublicHolidays(KnownYear));
         Assert.Equal(HttpStatusCode.InternalServerError, ex.StatusCode);
+        Assert.Equal("Server error", ex.ResponseContent);
+        Assert.NotNull(ex.RequestUri);
+    }
+
+    [Fact]
+    public async Task GetPublicHolidays_WhenHttpRequestExceptionWithStatusCode_PropagatesStatusCode()
+    {
+        var innerException = new HttpRequestException("Bad gateway", inner: null, HttpStatusCode.BadGateway);
+        using var harness = new TestHttpHarness(_ => throw innerException);
+
+        var ex = await Assert.ThrowsAsync<FeiertageApiHttpException>(
+            () => harness.Client.GetPublicHolidays(KnownYear));
+        Assert.Equal(HttpStatusCode.BadGateway, ex.StatusCode);
+        Assert.Same(innerException, ex.InnerException);
+        Assert.NotNull(ex.RequestUri);
+    }
+
+    [Fact]
+    public async Task GetPublicHolidays_WhenHttpRequestExceptionWithoutStatusCode_FallsBackToInternalServerError()
+    {
+        using var harness = new TestHttpHarness(_ => throw new HttpRequestException("Connection refused"));
+
+        var ex = await Assert.ThrowsAsync<FeiertageApiHttpException>(
+            () => harness.Client.GetPublicHolidays(KnownYear));
+        Assert.Equal(HttpStatusCode.InternalServerError, ex.StatusCode);
+        Assert.IsType<HttpRequestException>(ex.InnerException);
+    }
+
+    [Fact]
+    public async Task GetPublicHolidays_WhenTimeout_ShouldThrowFeiertageApiHttpExceptionWithRequestTimeout()
+    {
+        using var harness = new TestHttpHarness(_ => throw new TaskCanceledException("timed out"));
+
+        var ex = await Assert.ThrowsAsync<FeiertageApiHttpException>(
+            () => harness.Client.GetPublicHolidays(KnownYear));
+        Assert.Equal(HttpStatusCode.RequestTimeout, ex.StatusCode);
+        Assert.NotNull(ex.RequestUri);
+    }
+
+    [Fact]
+    public async Task GetPublicHolidays_WhenCancellationRequested_ShouldPropagateOperationCanceledException()
+    {
+        using var harness = TestHttpHarness.Returning("""{"status":"success","feiertage":[]}""");
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => harness.Client.GetPublicHolidays(KnownYear, cancellationToken: cts.Token));
+    }
+
+    [Fact]
+    public async Task GetPublicHolidays_WhenResponseIsMalformedJson_ShouldThrowFeiertageApiResponseException()
+    {
+        const string malformedJson = "{ this is not valid json";
+        using var harness = TestHttpHarness.Returning(malformedJson);
+
+        var ex = await Assert.ThrowsAsync<FeiertageApiResponseException>(
+            () => harness.Client.GetPublicHolidays(KnownYear));
+        Assert.Equal(malformedJson, ex.ResponseContent);
+        Assert.NotNull(ex.RequestUri);
     }
 
     [Fact]
