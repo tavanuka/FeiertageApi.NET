@@ -6,8 +6,13 @@ on:
   pull_request:
     branches: [main, master]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
+    name: Build & Test
     runs-on: ubuntu-latest
 
     steps:
@@ -43,3 +48,48 @@ jobs:
           directory: ./TestResults
           token: ${{ secrets.CODECOV_TOKEN }}
           report_type: test_results
+
+  # Prepare a draft GitHub release for the current project version on every push
+  # to a release branch. The maintainer publishes the draft to trigger the release workflow.
+  releaseDraft:
+    name: Release draft
+    if: github.event_name != 'pull_request'
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - name: Remove old release drafts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/releases \
+            --jq '.[] | select(.draft == true) | .id' \
+            | xargs -r -I '{}' gh api -X DELETE repos/${{ github.repository }}/releases/{}
+
+      - name: Create release draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(sed -nE 's|.*<VersionPrefix[^>]*>([^<]+)</VersionPrefix>.*|\1|p' Directory.Build.props | head -n1)
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not read <VersionPrefix> from Directory.Build.props."
+            exit 1
+          fi
+
+          RELEASE_NOTES="${RUNNER_TEMP}/release-notes.md"
+          awk '
+            /^## \[Unreleased\]/    { flag = 1; next }
+            /^## \[/ && flag        { exit }
+            /^\[[^]]+\]:/ && flag   { exit }
+            flag                    { print }
+          ' CHANGELOG.md > "$RELEASE_NOTES"
+
+          gh release create "$VERSION" \
+            --draft \
+            --title "$VERSION" \
+            --notes-file "$RELEASE_NOTES" \
+            --target "${{ github.sha }}"
