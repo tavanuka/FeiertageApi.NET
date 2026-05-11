@@ -5,7 +5,7 @@
 ### Added
 - Smoke tests against the real API
 - More tests to improve code coverage and robustness
-- Source generation for the Feiertage JSON context and converters
+- Source generation for the Feiertage JSON context and converters #15
 - Project is now AOT compatible
 
 ### Fixed
