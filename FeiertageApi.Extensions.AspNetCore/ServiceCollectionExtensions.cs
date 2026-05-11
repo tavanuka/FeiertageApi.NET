@@ -1,5 +1,6 @@
 ﻿using FeiertageApi.Clients;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 
 namespace FeiertageApi.Extensions.AspNetCore;
@@ -14,11 +15,12 @@ public static class ServiceCollectionExtensions
     /// <returns>The modified service collection with the Feiertage API client registered.</returns>
     public static IServiceCollection AddFeiertageApi(this IServiceCollection services)
     {
-        services.AddHttpClient<IFeiertageApiClient, FeiertageApiClient>(static client => {
-            client.BaseAddress = new Uri(IFeiertageApiClient.FeiertageApiBaseUrl);
-        })
-        .AddStandardResilienceHandler();
-        
+        services.AddHttpClient<IFeiertageApiClient, FeiertageApiClient>(client =>
+                client.BaseAddress = new Uri(IFeiertageApiClient.FeiertageApiBaseUrl))
+            .AddTypedClient<IFeiertageApiClient>((httpClient, sp) =>
+                new FeiertageApiClient(httpClient, sp.GetService<ILogger<FeiertageApiClient>>()))
+            .AddStandardResilienceHandler();
+
         return services;
     }
 }
