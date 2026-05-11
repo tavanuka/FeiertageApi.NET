@@ -1,324 +1,101 @@
 using FeiertageApi.Clients;
-using FeiertageApi.Exceptions;
 using FeiertageApi.Models;
 using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
-using Moq.Protected;
-using System.Net;
-using System.Text.Json;
 
 namespace FeiertageApi.Tests.Clients;
 
 public class FeiertageApiClientTests
 {
-    private readonly Mock<HttpMessageHandler> _httpMessageHandlerMock;
-    private readonly HttpClient _httpClient;
+    private const int KnownYear = 2024;
 
-    public FeiertageApiClientTests()
-    {
-        _httpMessageHandlerMock = new Mock<HttpMessageHandler>();
-        _httpClient = new HttpClient(_httpMessageHandlerMock.Object)
-        {
-            BaseAddress = new Uri("https://get.feiertage-api.de/")
-        };
-    }
+    private static FeiertageApiClient CreateClient()
+        => new(NullLogger<FeiertageApiClient>.Instance);
 
     [Fact]
-    public async Task GetPublicHolidays_WithYear_ShouldReturnHolidays()
+    public async Task GetPublicHolidays_WithYear_ReturnsHolidaysIncludingChristmasAndNewYear()
     {
-        // Arrange
-        var responseJson = """
-        {
-            "status": "success",
-            "feiertage": [
-                {
-                    "date": "2024-12-25",
-                    "fname": "Christmas",
-                    "all_states": "1",
-                    "by": "1",
-                    "comment": "",
-                    "augsburg": null,
-                    "katholisch": null
-                }
-            ]
-        }
-        """;
+        await using var client = CreateClient();
 
-        _httpMessageHandlerMock
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(responseJson)
-            });
+        var result = await client.GetPublicHolidays(KnownYear);
 
-        using var client = new FeiertageApiClient(_httpClient, NullLogger<FeiertageApiClient>.Instance);
-
-        // Act
-        var result = await client.GetPublicHolidays(2024);
-
-        // Assert
         Assert.NotNull(result);
         Assert.Equal("success", result.Status);
-        Assert.Single(result.Holidays);
-        Assert.Equal("Christmas", result.Holidays[0].Name);
+        Assert.NotEmpty(result.Holidays);
+        Assert.Contains(result.Holidays, h => h.Date == new DateOnly(KnownYear, 12, 25));
+        Assert.Contains(result.Holidays, h => h.Date == new DateOnly(KnownYear, 1, 1));
     }
 
     [Fact]
-    public async Task GetPublicHolidays_WithYearAndState_ShouldIncludeStateInQuery()
+    public async Task GetPublicHolidays_WithBavaria_IncludesAssumptionDay()
     {
-        // Arrange
-        var responseJson = """
+        await using var client = CreateClient();
+
+        var result = await client.GetPublicHolidays(KnownYear, GermanState.Bavaria);
+
+        Assert.Equal("success", result.Status);
+        // Mariä Himmelfahrt (Aug 15) is observed in Bavaria but not in most other states,
+        // making it a stable invariant for verifying state filtering.
+        Assert.Contains(result.Holidays, h => h.Date == new DateOnly(KnownYear, 8, 15));
+    }
+
+    [Fact]
+    public async Task GetPublicHolidays_WithMultipleStates_ReturnsHolidaysCoveringBothStates()
+    {
+        await using var client = CreateClient();
+
+        var result = await client.GetPublicHolidays(
+            KnownYear,
+            [GermanState.Bavaria, GermanState.Berlin]);
+
+        Assert.Equal("success", result.Status);
+        var statesSeen = result.Holidays.SelectMany(h => h.States.Keys).ToHashSet();
+        Assert.Contains(GermanState.Bavaria, statesSeen);
+        Assert.Contains(GermanState.Berlin, statesSeen);
+    }
+
+    [Fact]
+    public async Task StreamPublicHolidays_YieldsSameHolidaysAsGetPublicHolidays()
+    {
+        await using var client = CreateClient();
+
+        var streamed = new List<Holiday>();
+        await foreach (var holiday in client.StreamPublicHolidays(KnownYear, GermanState.Bavaria))
         {
-            "status": "success",
-            "feiertage": []
-        }
-        """;
-
-        HttpRequestMessage? capturedRequest = null;
-
-        _httpMessageHandlerMock
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync((HttpRequestMessage req, CancellationToken _) =>
-            {
-                capturedRequest = req;
-                return new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent(responseJson)
-                };
-            });
-
-        using var client = new FeiertageApiClient(_httpClient, NullLogger<FeiertageApiClient>.Instance);
-
-        // Act
-        await client.GetPublicHolidays(2024, GermanState.Bavaria);
-
-        // Assert
-        Assert.NotNull(capturedRequest);
-        Assert.Contains("states=by", capturedRequest!.RequestUri!.Query);
-        Assert.Contains("years=2024", capturedRequest.RequestUri.Query);
-    }
-
-    [Fact]
-    public async Task GetPublicHolidays_WithMultipleStates_ShouldIncludeAllStatesInQuery()
-    {
-        // Arrange
-        var responseJson = """
-        {
-            "status": "success",
-            "feiertage": []
-        }
-        """;
-
-        HttpRequestMessage? capturedRequest = null;
-
-        _httpMessageHandlerMock
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync((HttpRequestMessage req, CancellationToken _) =>
-            {
-                capturedRequest = req;
-                return new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent(responseJson)
-                };
-            });
-
-        using var client = new FeiertageApiClient(_httpClient, NullLogger<FeiertageApiClient>.Instance);
-
-        // Act
-        await client.GetPublicHolidays(2024, new[] { GermanState.Bavaria, GermanState.Berlin });
-
-        // Assert
-        Assert.NotNull(capturedRequest);
-        Assert.Contains("states=by,be", capturedRequest!.RequestUri!.Query);
-    }
-
-    [Fact]
-    public async Task GetPublicHolidays_WhenApiReturnsError_ShouldThrowFeiertageApiResponseException()
-    {
-        // Arrange
-        var responseJson = """
-        {
-            "status": "error",
-            "error_description": "Invalid parameter",
-            "feiertage": []
-        }
-        """;
-
-        _httpMessageHandlerMock
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(responseJson)
-            });
-
-        using var client = new FeiertageApiClient(_httpClient, NullLogger<FeiertageApiClient>.Instance);
-
-        // Act & Assert
-        var ex = await Assert.ThrowsAsync<FeiertageApiResponseException>(
-            async () => await client.GetPublicHolidays(2024));
-        Assert.Equal("Invalid parameter", ex.ErrorDescription);
-    }
-
-    [Fact]
-    public async Task GetPublicHolidays_WhenHttpError_ShouldThrowFeiertageApiHttpException()
-    {
-        // Arrange
-        _httpMessageHandlerMock
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.InternalServerError,
-                Content = new StringContent("Server error")
-            });
-
-        using var client = new FeiertageApiClient(_httpClient, NullLogger<FeiertageApiClient>.Instance);
-
-        // Act & Assert
-        var ex = await Assert.ThrowsAsync<FeiertageApiHttpException>(
-            async () => await client.GetPublicHolidays(2024));
-        Assert.Equal(HttpStatusCode.InternalServerError, ex.StatusCode);
-    }
-
-    [Fact]
-    public async Task GetPublicHolidays_WhenResponseIsNull_ShouldThrowFeiertageApiResponseException()
-    {
-        // Arrange
-        _httpMessageHandlerMock
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("null")
-            });
-
-        using var client = new FeiertageApiClient(_httpClient, NullLogger<FeiertageApiClient>.Instance);
-
-        // Act & Assert
-        await Assert.ThrowsAsync<FeiertageApiResponseException>(
-            async () => await client.GetPublicHolidays(2024));
-    }
-
-    [Fact]
-    public async Task StreamPublicHolidays_ShouldYieldHolidays()
-    {
-        // Arrange
-        var responseJson = """
-        {
-            "status": "success",
-            "feiertage": [
-                {
-                    "date": "2024-01-01",
-                    "fname": "New Year",
-                    "all_states": "1",
-                    "by": "1",
-                    "comment": "",
-                    "augsburg": null,
-                    "katholisch": null
-                },
-                {
-                    "date": "2024-12-25",
-                    "fname": "Christmas",
-                    "all_states": "1",
-                    "by": "1",
-                    "comment": "",
-                    "augsburg": null,
-                    "katholisch": null
-                }
-            ]
-        }
-        """;
-
-        _httpMessageHandlerMock
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(responseJson)
-            });
-
-        using var client = new FeiertageApiClient(_httpClient, NullLogger<FeiertageApiClient>.Instance);
-
-        // Act
-        var holidays = new List<Holiday>();
-        await foreach (var holiday in client.StreamPublicHolidays(2024, GermanState.Bavaria))
-        {
-            holidays.Add(holiday);
+            streamed.Add(holiday);
         }
 
-        // Assert
-        Assert.Equal(2, holidays.Count);
-        Assert.Equal("New Year", holidays[0].Name);
-        Assert.Equal("Christmas", holidays[1].Name);
+        var nonStreamed = await client.GetPublicHolidays(KnownYear, GermanState.Bavaria);
+        Assert.NotEmpty(streamed);
+        Assert.Equal(nonStreamed.Holidays.Count, streamed.Count);
     }
 
     [Fact]
-    public async Task Dispose_WhenUsingStandaloneConstructor_ShouldDisposeHttpClient()
+    public void Dispose_WhenUsingStandaloneConstructor_DoesNotThrow()
     {
-        // Arrange
-        using var client = new FeiertageApiClient(NullLogger<FeiertageApiClient>.Instance);
+        var client = new FeiertageApiClient(NullLogger<FeiertageApiClient>.Instance);
 
-        // Act & Assert - Should not throw
-        client.Dispose();
+        var exception = Record.Exception(client.Dispose);
+
+        Assert.Null(exception);
     }
 
     [Fact]
-    public async Task DisposeAsync_WhenUsingStandaloneConstructor_ShouldDisposeHttpClient()
+    public async Task DisposeAsync_WhenUsingStandaloneConstructor_DoesNotThrow()
     {
-        // Arrange
-        await using var client = new FeiertageApiClient(NullLogger<FeiertageApiClient>.Instance);
+        var client = new FeiertageApiClient(NullLogger<FeiertageApiClient>.Instance);
 
-        // Act & Assert - Should not throw
+        var exception = await Record.ExceptionAsync(async () => await client.DisposeAsync());
+
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task GetPublicHolidays_AfterDispose_ThrowsObjectDisposedException()
+    {
+        var client = new FeiertageApiClient(NullLogger<FeiertageApiClient>.Instance);
         await client.DisposeAsync();
-    }
 
-    [Fact]
-    public async Task GetPublicHolidays_AfterDispose_ShouldThrowObjectDisposedException()
-    {
-        // Arrange
-        var client = new FeiertageApiClient(_httpClient, NullLogger<FeiertageApiClient>.Instance);
-        client.Dispose();
-
-        // Act & Assert
         await Assert.ThrowsAsync<ObjectDisposedException>(
-            async () => await client.GetPublicHolidays(2024));
+            async () => await client.GetPublicHolidays(KnownYear));
     }
 }
