@@ -7,8 +7,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -293,7 +295,7 @@ public sealed class FeiertageApiClient : IFeiertageApiClient, IDisposable, IAsyn
             _logger.LogError(ex, "HTTP error occurred while calling Feiertage API: {RequestUri}", requestUri);
             throw new FeiertageApiHttpException(
                 "Failed to communicate with the Feiertage API due to an HTTP error.",
-                ex.StatusCode ?? System.Net.HttpStatusCode.InternalServerError,
+                ex.StatusCode ?? HttpStatusCode.InternalServerError,
                 null,
                 requestUri,
                 ex);
@@ -303,7 +305,7 @@ public sealed class FeiertageApiClient : IFeiertageApiClient, IDisposable, IAsyn
             _logger.LogError(ex, "Request to Feiertage API timed out: {RequestUri}", requestUri);
             throw new FeiertageApiHttpException(
                 "The request to the Feiertage API timed out.",
-                System.Net.HttpStatusCode.RequestTimeout,
+                HttpStatusCode.RequestTimeout,
                 null,
                 requestUri,
                 new HttpRequestException("Request timeout", ex));
@@ -325,9 +327,9 @@ public sealed class FeiertageApiClient : IFeiertageApiClient, IDisposable, IAsyn
         HolidayResponse? holidayResponse;
         try
         {
-            holidayResponse = System.Text.Json.JsonSerializer.Deserialize<HolidayResponse>(responseContent);
+            holidayResponse = JsonSerializer.Deserialize<HolidayResponse>(responseContent);
         }
-        catch (System.Text.Json.JsonException ex)
+        catch (JsonException ex)
         {
             _logger.LogError(ex, "Failed to deserialize response from Feiertage API: {ResponseContent}", responseContent);
             throw new FeiertageApiResponseException(
@@ -369,7 +371,7 @@ public sealed class FeiertageApiClient : IFeiertageApiClient, IDisposable, IAsyn
     /// <summary>
     /// Throws an ObjectDisposedException if the client has been disposed.
     /// </summary>
-    private void ThrowIfDisposed() 
+    private void ThrowIfDisposed()
         => ObjectDisposedException.ThrowIf(_disposed, this);
 
     /// <summary>
@@ -385,27 +387,17 @@ public sealed class FeiertageApiClient : IFeiertageApiClient, IDisposable, IAsyn
             _httpClient.Dispose();
 
         _disposed = true;
-
-        _logger.LogDebug("FeiertageApiClient disposed");
+        if (_logger.IsEnabled(LogLevel.Debug))
+            _logger.LogDebug("FeiertageApiClient disposed");
     }
 
     /// <summary>
     /// Asynchronously disposes the FeiertageApiClient and releases any managed resources.
     /// If the HttpClient was created internally, it will be disposed. Otherwise, disposal is left to the caller.
     /// </summary>
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        if (_disposed)
-            return;
-
-        if (_shouldDisposeHttpClient)
-            _httpClient.Dispose();
-
-        _disposed = true;
-
-        if (_logger.IsEnabled(LogLevel.Debug))
-            _logger.LogDebug("FeiertageApiClient disposed asynchronously");
-
-        await ValueTask.CompletedTask;
+        Dispose();
+        return ValueTask.CompletedTask;
     }
 }
