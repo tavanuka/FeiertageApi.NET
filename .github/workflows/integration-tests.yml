@@ -1,0 +1,37 @@
+name: Integration Tests
+
+on:
+  # Weekly on Monday at 06:00 UTC — surfaces upstream contract drift at the start of the work week
+  schedule:
+    - cron: '0 6 * * 1'
+  # Manual trigger for ad-hoc runs
+  workflow_dispatch:
+
+concurrency:
+  group: integration-tests
+  cancel-in-progress: true
+
+jobs:
+  integration:
+    name: Live-API smoke tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5.1.0
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore FeiertageApi.NET.slnx
+
+      - name: Build
+        run: dotnet build FeiertageApi.NET.slnx -c Debug --no-restore
+
+      - name: Run integration tests
+        run: dotnet test FeiertageApi.Tests/FeiertageApi.Tests.csproj -c Debug --no-build --no-restore --filter "Category=Integration"
