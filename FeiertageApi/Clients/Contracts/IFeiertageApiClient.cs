@@ -1,8 +1,6 @@
 ﻿using FeiertageApi.Exceptions;
 using FeiertageApi.Models;
-using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,7 +17,7 @@ public interface IFeiertageApiClient
     /// This property provides the endpoint that the <see cref="IFeiertageApiClient"/> implementation uses
     /// to communicate with the Feiertage API for retrieving public holidays data.
     /// </summary>
-    public static string FeiertageApiBaseUrl => "https://get.feiertage-api.de/";
+    public static string FeiertageApiBaseUrl => "https://get.api-feiertage.de/";
 
     Task<HolidayResponse> GetPublicHolidays(bool allStates = false, bool? catholic = null, bool? augsburg = null, CancellationToken cancellationToken = default);
     Task<HolidayResponse> GetPublicHolidays(int year, bool allStates = false, bool? catholic = null, bool? augsburg = null, CancellationToken cancellationToken = default);
