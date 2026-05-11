@@ -1,6 +1,9 @@
 # FeiertageApi.NET
 [![Build & Test](https://github.com/tavanuka/FeiertageApi.NET/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/tavanuka/FeiertageApi.NET/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/tavanuka/FeiertageApi.NET/graph/badge.svg?token=UR5TXTIXP9)](https://codecov.io/gh/tavanuka/FeiertageApi.NET)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=tavanuka_FeiertageApi.NET&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=tavanuka_FeiertageApi.NET)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=tavanuka_FeiertageApi.NET&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=tavanuka_FeiertageApi.NET)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=tavanuka_FeiertageApi.NET&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=tavanuka_FeiertageApi.NET)
 
 [![NuGet](https://img.shields.io/nuget/v/FeiertageApi.svg?label=FeiertageApi)](https://www.nuget.org/packages/FeiertageApi/)
 [![NuGet](https://img.shields.io/nuget/v/FeiertageApi.Extensions.AspNetCore.svg?label=FeiertageApi.Extensions.AspNetCore)](https://www.nuget.org/packages/FeiertageApi.Extensions.AspNetCore/)
