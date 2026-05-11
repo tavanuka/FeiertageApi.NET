@@ -6,6 +6,7 @@
 - Smoke tests against the real API
 - More tests to improve code coverage and robustness
 - Source generation for the Feiertage JSON context and converters
+- Project is now AOT compatible
 
 ### Fixed
 - Base URL's DNS could not be resolved
@@ -18,6 +19,8 @@
 - Drop `Moq` utilisation for single-purpose stubs and test harness
 - (Extensions.AspNetCore): Explicitly create a typed client for the API
 - Adjust certain constructor visibility to be more consistent with the library's design
+- Hard-code ``GermanState`` literal values to introduce better AOT compatibility
+- Improve the ``GermanState`` value querying
 
 ## [0.1.1] - 2026-05-11
 
