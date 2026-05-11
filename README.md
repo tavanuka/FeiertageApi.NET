@@ -51,12 +51,16 @@ var response = await client2.GetPublicHolidays(2025, GermanState.Berlin);
 
 ### Option 2: Dependency Injection
 
-Recommended for ASP.NET Core and larger applications:
+Recommended for ASP.NET Core and larger applications. Requires the separate `FeiertageApi.Extensions.AspNetCore` package:
+
+```bash
+dotnet add package FeiertageApi.Extensions.AspNetCore
+```
 
 #### 1. Register the Service
 
 ```csharp
-using FeiertageApi.Extensions;
+using FeiertageApi.Extensions.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
