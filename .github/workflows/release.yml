@@ -27,14 +27,9 @@ jobs:
 
       - name: Pack
         run: |
-          VERSION="${{ github.event.release.tag_name }}"
-          dotnet pack FeiertageApi/FeiertageApi.csproj \
+          dotnet pack FeiertageApi.NET.slnx \
             -c Release \
-            -p:Version=$VERSION \
-            -o ./artifacts
-          dotnet pack FeiertageApi.Extensions.AspNetCore/FeiertageApi.Extensions.AspNetCore.csproj \
-            -c Release \
-            -p:Version=$VERSION \
+            -p:Version=${{ github.event.release.tag_name }} \
             -o ./artifacts
 
       - name: Attach packages to release
