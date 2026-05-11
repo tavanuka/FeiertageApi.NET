@@ -18,6 +18,7 @@ A modern .NET library for accessing German public holidays through the [Feiertag
 - **Dependency Injection** - First-class support for .NET DI
 - **Disposable Pattern** - Supports both IDisposable and IAsyncDisposable for standalone usage
 - **Strongly-Typed States** - Type-safe `GermanState` enum with IntelliSense support
+- **Native AOT & Trim Friendly** - Both packages are marked `<IsAotCompatible>true</IsAotCompatible>` and ship a source-generated `JsonSerializerContext` — no reflection at the JSON entry point, no AOT/trim analyzer warnings when consumed from a `PublishAot=true` app
 
 ## Installation
 
@@ -223,6 +224,21 @@ builder.Services.AddLogging(logging =>
     logging.AddConsole();
     logging.SetMinimumLevel(LogLevel.Debug);
 });
+```
+
+## Native AOT & Trimming
+
+Both `FeiertageApi` and `FeiertageApi.Extensions.AspNetCore` are built with `<IsAotCompatible>true</IsAotCompatible>` and pass the AOT / trim analyzer with zero warnings on `net8.0`, `net9.0`, and `net10.0`. Consumers can reference them from a `PublishAot=true` app without losing holiday parsing or seeing `IL2026` / `IL3050` warnings.
+
+Meaning:
+- JSON deserialization goes through the source-generated `FeiertageJsonContext` (`JsonSerializer.Deserialize(string, JsonTypeInfo<HolidayResponse>)`) — no runtime reflection to discover converters or build parser metadata.
+- The custom `HolidayResponseJsonConverter` uses `Utf8JsonReader` directly; the API's dynamic state-code property names (`"by"`, `"be"`, …) are mapped to the strongly-typed `GermanState` enum without reflection.
+- `GermanStateExtensions.ToStateCode` is a hardcoded `switch` — no enum `[Description]` reflection.
+
+Publishing an AOT-trimmed app that uses this library:
+
+```bash
+dotnet publish -c Release -r win-x64 -p:PublishAot=true
 ```
 
 ## Requirements
