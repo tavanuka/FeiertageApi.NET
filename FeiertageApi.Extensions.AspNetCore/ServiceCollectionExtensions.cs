@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace FeiertageApi.Extensions;
+namespace FeiertageApi.Extensions.AspNetCore;
 
 public static class ServiceCollectionExtensions
 {
